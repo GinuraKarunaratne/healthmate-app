@@ -5,7 +5,7 @@ import 'providers/auth_provider.dart';
 import 'providers/health_records_provider.dart';
 import 'providers/sleep_provider.dart';
 import 'providers/goals_provider.dart';
-import 'providers/bmi_provider.dart';
+import 'providers/medication_provider.dart';
 import 'screens/auth/login_screen.dart';
 
 void main() {
@@ -24,7 +24,7 @@ class HealthMateApp extends StatelessWidget {
         Provider(create: (_) => HealthRecordsProvider()),
         ChangeNotifierProvider(create: (_) => SleepProvider()),
         ChangeNotifierProvider(create: (_) => GoalsProvider()),
-        ChangeNotifierProvider(create: (_) => BMIProvider()),
+        ChangeNotifierProvider(create: (_) => MedicationProvider()),
       ],
       child: MaterialApp(
         title: 'HealthMate',

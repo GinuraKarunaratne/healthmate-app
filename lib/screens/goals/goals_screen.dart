@@ -317,7 +317,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                               ),
                               const SizedBox(height: 12),
                               _buildRecommendationItem(
-                                'Weight: Consult BMI calculator for healthy range',
+                                'Weight: Consult healthcare professional for healthy range',
                               ),
                             ],
                           ),

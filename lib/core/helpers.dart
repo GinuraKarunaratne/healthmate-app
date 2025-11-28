@@ -109,32 +109,6 @@ class PasswordHelper {
   }
 }
 
-class BMIHelper {
-  static double calculateBMI(double heightCm, double weightKg) {
-    final heightM = heightCm / 100;
-    return weightKg / (heightM * heightM);
-  }
-
-  static String getBMICategory(double bmi) {
-    if (bmi < 18.5) return 'Underweight';
-    if (bmi < 25) return 'Normal';
-    if (bmi < 30) return 'Overweight';
-    return 'Obese';
-  }
-
-  static String getBMIRecommendation(double bmi) {
-    if (bmi < 18.5) {
-      return 'Consider increasing calorie intake and consult a nutritionist.';
-    } else if (bmi < 25) {
-      return 'Great! Maintain your current healthy lifestyle.';
-    } else if (bmi < 30) {
-      return 'Consider a balanced diet and regular exercise.';
-    } else {
-      return 'Consult a healthcare professional for personalized advice.';
-    }
-  }
-}
-
 class SleepHelper {
   static int calculateDuration(DateTime start, DateTime end) {
     return end.difference(start).inMinutes;

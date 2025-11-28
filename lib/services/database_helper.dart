@@ -25,9 +25,27 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE medications (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          dosage TEXT NOT NULL,
+          frequency TEXT NOT NULL,
+          timeOfDay TEXT NOT NULL,
+          isActive INTEGER NOT NULL DEFAULT 1,
+          createdAt TEXT NOT NULL,
+          notes TEXT
+        )
+      ''');
+    }
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -79,6 +97,19 @@ class DatabaseHelper {
         daily_step_goal INTEGER NOT NULL,
         daily_water_goal_ml INTEGER NOT NULL,
         target_weight REAL NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE medications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        dosage TEXT NOT NULL,
+        frequency TEXT NOT NULL,
+        timeOfDay TEXT NOT NULL,
+        isActive INTEGER NOT NULL DEFAULT 1,
+        createdAt TEXT NOT NULL,
+        notes TEXT
       )
     ''');
 

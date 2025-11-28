@@ -5,12 +5,11 @@ import '../../models/health_record.dart';
 import '../../providers/health_records_provider.dart';
 import '../../providers/goals_provider.dart';
 import '../../providers/sleep_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../records/records_list_screen.dart';
 import '../sleep/sleep_tracker_screen.dart';
-import '../bmi/bmi_calculator_screen.dart';
+import '../medication/medication_tracker_screen.dart';
 import '../goals/goals_screen.dart';
-import '../auth/login_screen.dart';
+import '../profile/profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -31,9 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 2:
         return const SleepTrackerScreen();
       case 3:
-        return const BMICalculatorScreen();
-      case 4:
-        return const GoalsScreen();
+        return const MedicationTrackerScreen();
       default:
         return const DashboardHomeScreen();
     }
@@ -55,8 +52,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildNavItem(Icons.dashboard, 0),
             _buildNavItem(Icons.article, 1),
             _buildNavItem(Icons.nightlight, 2),
-            _buildNavItem(Icons.calculate, 3),
-            _buildNavItem(Icons.track_changes, 4),
+            _buildNavItem(Icons.medication, 3),
+            _buildNavItem(Icons.person, 4),
           ],
         ),
       ),
@@ -67,9 +64,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
+        if (index == 4) {
+          // Navigate to profile screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        } else {
+          setState(() {
+            _selectedIndex = index;
+          });
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -138,14 +143,6 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
     }
   }
 
-  void _handleLogout(BuildContext context) {
-    Provider.of<AuthProvider>(context, listen: false).logout();
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,12 +175,31 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                             width: 80,
                             height: 30,
                           ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.door_front_door_outlined,
-                              color: Color(0xFF002E34),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const GoalsScreen(),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF00707D),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.flag_outlined,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
                             ),
-                            onPressed: () => _handleLogout(context),
                           ),
                         ],
                       ),
