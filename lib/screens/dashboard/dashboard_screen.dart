@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/health_record.dart';
 import '../../providers/health_records_provider.dart';
-import '../../providers/goals_provider.dart';
 import '../../providers/sleep_provider.dart';
 import '../records/records_list_screen.dart';
 import '../sleep/sleep_tracker_screen.dart';
 import '../medication/medication_tracker_screen.dart';
-import '../goals/goals_screen.dart';
 import '../profile/profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -103,11 +102,28 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
   HealthRecord? _todayRecord;
   List<HealthRecord> _weeklyRecords = [];
   bool _isLoading = false;
+  int _waterGoal = 2000;
 
   @override
   void initState() {
     super.initState();
+    _loadWaterGoal();
     _loadData();
+  }
+
+  Future<void> _loadWaterGoal() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _waterGoal = prefs.getInt('water_goal') ?? 2000;
+    });
+  }
+
+  Future<void> _saveWaterGoal(int goal) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('water_goal', goal);
+    setState(() {
+      _waterGoal = goal;
+    });
   }
 
   Future<void> _loadData() async {
@@ -120,12 +136,10 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
     try {
       final healthProvider =
           Provider.of<HealthRecordsProvider>(context, listen: false);
-      final goalsProvider = Provider.of<GoalsProvider>(context, listen: false);
 
       await healthProvider.loadRecords();
       final todayRecord = await healthProvider.loadTodayRecord();
       final weeklyRecords = await healthProvider.getLast7DaysRecords();
-      await goalsProvider.loadGoal();
 
       if (mounted) {
         setState(() {
@@ -149,8 +163,8 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
       backgroundColor: const Color(0xFFEAF8FB),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Consumer<GoalsProvider>(
-              builder: (context, goalsProvider, _) {
+          : Builder(
+              builder: (context) {
                 final healthProvider =
                     Provider.of<HealthRecordsProvider>(context, listen: false);
                 final stats = healthProvider.getTodayStats(_todayRecord);
@@ -167,41 +181,10 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                         bottom: 20,
                       ),
                       color: const Color(0xFFEAF8FB),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/logo.svg',
-                            width: 80,
-                            height: 30,
-                          ),
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const GoalsScreen(),
-                                  ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF00707D),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.flag_outlined,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: SvgPicture.asset(
+                        'assets/logo.svg',
+                        width: 80,
+                        height: 30,
                       ),
                     ),
 
@@ -286,7 +269,7 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                                 // Water Intake Gauge
                                 _buildWaterIntakeCard(
                                   stats['water'] ?? 0,
-                                  goalsProvider.dailyWaterGoalMl,
+                                  _waterGoal,
                                 ),
                               ],
                             ),
@@ -520,32 +503,36 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '$currentWater',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontFamily: 'Onest',
-                            fontWeight: FontWeight.w400,
-                            height: 1,
-                            letterSpacing: -0.73,
+                  GestureDetector(
+                    onTap: () => _showEditWaterGoalDialog(context),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '$currentWater',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 25,
+                              fontFamily: 'Onest',
+                              fontWeight: FontWeight.w400,
+                              height: 1,
+                              letterSpacing: -0.73,
+                            ),
                           ),
-                        ),
-                        TextSpan(
-                          text: '/$goalWater ML',
-                          style: const TextStyle(
-                            color: Color(0xFF88A8AF),
-                            fontSize: 25,
-                            fontFamily: 'Onest',
-                            fontWeight: FontWeight.w400,
-                            height: 1,
-                            letterSpacing: -0.73,
+                          TextSpan(
+                            text: '/$goalWater ML',
+                            style: const TextStyle(
+                              color: Color(0xFF88A8AF),
+                              fontSize: 25,
+                              fontFamily: 'Onest',
+                              fontWeight: FontWeight.w400,
+                              height: 1,
+                              letterSpacing: -0.73,
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -607,6 +594,119 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
     final sleepProvider = Provider.of<SleepProvider>(context, listen: false);
     final avgQuality = sleepProvider.getAverageQuality();
     return avgQuality > 0 ? avgQuality.toStringAsFixed(1) : 'N/A';
+  }
+
+  Future<void> _showEditWaterGoalDialog(BuildContext context) async {
+    final controller = TextEditingController(text: _waterGoal.toString());
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFF8FDFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        title: const Text(
+          'Edit Water Goal',
+          style: TextStyle(
+            color: Color(0xFF002E34),
+            fontSize: 20,
+            fontFamily: 'Onest',
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Daily Water Goal (ml)',
+              style: TextStyle(
+                color: Color(0xFF002E34),
+                fontSize: 14,
+                fontFamily: 'Onest',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              style: const TextStyle(
+                color: Color(0xFF002E34),
+                fontSize: 16,
+                fontFamily: 'Onest',
+              ),
+              decoration: InputDecoration(
+                hintText: 'Enter goal in ml',
+                hintStyle: const TextStyle(
+                  color: Color(0xFF88A8AF),
+                  fontSize: 16,
+                  fontFamily: 'Onest',
+                ),
+                border: InputBorder.none,
+                filled: true,
+                fillColor: const Color(0xFFE5F3F6),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.transparent),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF00707D),
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: Color(0xFF88A8AF),
+                fontSize: 16,
+                fontFamily: 'Onest',
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              final newGoal = int.tryParse(controller.text);
+              if (newGoal != null && newGoal > 0) {
+                _saveWaterGoal(newGoal);
+                Navigator.pop(context);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please enter a valid number'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                color: Color(0xFF00707D),
+                fontSize: 16,
+                fontFamily: 'Onest',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

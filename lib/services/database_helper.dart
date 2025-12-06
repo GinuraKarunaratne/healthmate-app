@@ -4,7 +4,6 @@ import '../models/user.dart';
 import '../models/health_record.dart';
 import '../models/detailed_record.dart';
 import '../models/sleep_session.dart';
-import '../models/goal.dart';
 import '../core/helpers.dart';
 
 class DatabaseHelper {
@@ -34,7 +33,7 @@ class DatabaseHelper {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('''
-        CREATE TABLE medications (
+        CREATE TABLE IF NOT EXISTS medications (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
           dosage TEXT NOT NULL,
@@ -92,15 +91,6 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE goals (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        daily_step_goal INTEGER NOT NULL,
-        daily_water_goal_ml INTEGER NOT NULL,
-        target_weight REAL NOT NULL
-      )
-    ''');
-
-    await db.execute('''
       CREATE TABLE medications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -128,12 +118,6 @@ class DatabaseHelper {
         'water': 1500 + (i * 200),
       });
     }
-
-    await db.insert('goals', {
-      'daily_step_goal': 10000,
-      'daily_water_goal_ml': 2000,
-      'target_weight': 70.0,
-    });
 
     for (int i = 0; i < 5; i++) {
       final date = DateHelper.formatDate(today.subtract(Duration(days: i)));
@@ -286,27 +270,6 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [id],
     );
-  }
-
-  Future<Goal?> getGoal() async {
-    final db = await database;
-    final maps = await db.query('goals', limit: 1);
-    if (maps.isEmpty) return null;
-    return Goal.fromMap(maps.first);
-  }
-
-  Future<int> updateGoal(Goal goal) async {
-    final db = await database;
-    if (goal.id != null) {
-      return await db.update(
-        'goals',
-        goal.toMap(),
-        where: 'id = ?',
-        whereArgs: [goal.id],
-      );
-    } else {
-      return await db.insert('goals', goal.toMap());
-    }
   }
 
   Future<void> close() async {

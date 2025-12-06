@@ -88,27 +88,29 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFEAF8FB),
       body: SafeArea(
-        child: Stack(
-          children: [
-            // Logo at top with absolute positioning
-            Positioned(
-              top: 100,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: SvgPicture.asset(
-                  'assets/logo.svg',
-                  width: 100,
-                  height: 40,
-                ),
-              ),
-            ),
-            // Signup form aligned to bottom
-            Column(
+        child: SingleChildScrollView(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
+            child: Stack(
               children: [
-                const Spacer(),
-                SingleChildScrollView(
-                  child: Container(
+                // Logo at top with absolute positioning
+                Positioned(
+                  top: 100,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/logo.svg',
+                      width: 100,
+                      height: 40,
+                    ),
+                  ),
+                ),
+                // Signup form aligned to bottom
+                Column(
+                  children: [
+                    const Spacer(),
+                    Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     child: Container(
@@ -499,12 +501,13 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ],
                       ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

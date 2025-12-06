@@ -4,7 +4,6 @@ import 'core/theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/health_records_provider.dart';
 import 'providers/sleep_provider.dart';
-import 'providers/goals_provider.dart';
 import 'providers/medication_provider.dart';
 import 'screens/auth/login_screen.dart';
 
@@ -23,7 +22,6 @@ class HealthMateApp extends StatelessWidget {
         // HealthRecordsProvider is now a simple service - no ChangeNotifier
         Provider(create: (_) => HealthRecordsProvider()),
         ChangeNotifierProvider(create: (_) => SleepProvider()),
-        ChangeNotifierProvider(create: (_) => GoalsProvider()),
         ChangeNotifierProvider(create: (_) => MedicationProvider()),
       ],
       child: MaterialApp(
